@@ -40,24 +40,32 @@ var connector = function (application, _path, appPath) {
 
   if (!_path) _path = __dirname;
   else {
-    const asarPath = path.join(_path, "node_modules", "slideshow");
+    const asarPath = path.join(app.getAppPath(), "slideshow");
+    const userDataPath = app.getPath("userData");
+    const connectorPath = path.join(userDataPath, "slideshow-connectors");
 
-    const connectorPath = path.join(appPath, "slideshow-connectors");
-
-    if (!fs.existsSync(connectorPath)) {
+    if (!fs.existsSync(connectorPath))
       fs.mkdirSync(connectorPath, { recursive: true });
-    }
 
-    // Copy the connector file from ASAR to the temp directory if it doesn't exist
-    const sourceFile = path.join(asarPath, cn);
-    const targetFile = path.join(connectorPath, cn);
+    fs.readdirSync(asarPath).forEach((file) => {
+      if (
+        file.endsWith(".scpt") ||
+        file.endsWith(".sh") ||
+        file.endsWith(".bat") ||
+        file === "connector-win-ppt2010.js"
+      ) {
+        const sourceFile = path.join(asarPath, file);
+        const targetFile = path.join(connectorPath, file);
 
-    if (!fs.existsSync(targetFile)) {
-      fs.copyFileSync(sourceFile, targetFile);
-      if (process.platform !== "win32") {
-        fs.chmodSync(targetFile, "755");
+        if (!fs.existsSync(targetFile)) {
+          fs.copyFileSync(sourceFile, targetFile);
+          if (process.platform !== "win32" && file.endsWith(".sh")) {
+            fs.chmodSync(targetFile, "755");
+          }
+        }
       }
-    }
+    });
+
     _path = connectorPath;
   }
 
