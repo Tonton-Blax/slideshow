@@ -32,18 +32,15 @@ var connectors = {
 };
 
 /*  the connector API constructor  */
-var connector = function (application, isPackaged) {
+var connector = function (application, _path) {
   /*  determine connector filename  */
   var id = os.platform() + "-" + application;
   var cn = connectors[id];
   if (typeof cn === "undefined")
     throw new Error("unsupported platform/application combination: " + id);
 
-  const filename = isPackaged
-    ? path.join(process.resourcesPath, cn)
-    : path.join(__dirname, cn);
-
-  console.log("FILE NAME : ", filename);
+  if (!_path) _path = __dirname;
+  const filename = path.join(_path, cn);
 
   /*  spawn the connector as a child process  */
   this.c = spawn(filename, [], {
