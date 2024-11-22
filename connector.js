@@ -32,15 +32,14 @@ var connectors = {
   "win32-powerpoint2013": "connector-win-ppt2010.bat",
 };
 
-var connector = function (application, _path) {
+var connector = function (application) {
   var id = os.platform() + "-" + application;
   var cn = connectors[id];
   if (typeof cn === "undefined")
     throw new Error("unsupported platform/application combination: " + id);
 
-  if (!_path) {
-    _path = __dirname;
-  } else {
+  let _path = __dirname;
+  if (app.isPackaged) {
     const userDataPath = app.getPath("userData");
     const connectorPath = path.join(userDataPath, "slideshow-connectors");
 
@@ -48,7 +47,6 @@ var connector = function (application, _path) {
       fs.mkdirSync(connectorPath, { recursive: true });
     }
 
-    // Get the unpacked path
     const resourcesPath = process.resourcesPath;
     const unpackedPath = path.join(
       resourcesPath,
@@ -58,7 +56,6 @@ var connector = function (application, _path) {
     );
 
     try {
-      // Copy all relevant files from the unpacked directory
       fs.readdirSync(unpackedPath).forEach((file) => {
         if (
           file.endsWith(".scpt") ||
@@ -71,7 +68,6 @@ var connector = function (application, _path) {
 
           if (!fs.existsSync(targetFile)) {
             fs.copyFileSync(sourceFile, targetFile);
-            // Make shell scripts executable on Unix systems
             if (process.platform !== "win32" && file.endsWith(".sh")) {
               fs.chmodSync(targetFile, "755");
             }
@@ -79,10 +75,8 @@ var connector = function (application, _path) {
         }
       });
     } catch (err) {
-      console.error("Error copying files:", err);
       throw err;
     }
-
     _path = connectorPath;
   }
 

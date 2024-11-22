@@ -12,7 +12,7 @@
 */
 
 export default class Slideshow {
-    constructor (application: string, _path: string | undefined )
+    constructor (application: string)
     request (request: any):     Promise<any>
     stat    ():                 Promise<{ state: string, position: number, slides: number }>
     info    ():                 Promise<{ titles: string[], notes: string[] }>
