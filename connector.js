@@ -45,6 +45,7 @@ var connector = function (application) {
     stdio: ["pipe", "pipe", process.stderr],
     env: { CONNECTOR: "FIXME" },
     shell: process.platform === "win32",
+    windowsHide: true,
   });
 
   /*  set the stdin/stdout pipes to UTF-8 encoding mode  */
