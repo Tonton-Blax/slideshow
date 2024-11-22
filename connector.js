@@ -34,7 +34,6 @@ var connectors = {
 /*  the connector API constructor  */
 var connector = function (application, _path) {
   /*  determine connector filename  */
-  if (!_path) throw new Error("invalid path for connector: " + _path);
   var id = os.platform() + "-" + application;
   var cn = connectors[id];
   if (typeof cn === "undefined")
