@@ -32,13 +32,14 @@ var connectors = {
 };
 
 /*  the connector API constructor  */
-var connector = function (application) {
+var connector = function (application, _path) {
   /*  determine connector filename  */
+  if (!_path) throw new Error("invalid path for connector: " + _path);
   var id = os.platform() + "-" + application;
   var cn = connectors[id];
   if (typeof cn === "undefined")
     throw new Error("unsupported platform/application combination: " + id);
-  var filename = path.join(__dirname, cn);
+  var filename = path.join(_path, cn);
 
   /*  spawn the connector as a child process  */
   this.c = spawn(filename, [], {
