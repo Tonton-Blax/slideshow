@@ -39,7 +39,7 @@ var connector = function (application, _path) {
   var cn = connectors[id];
   if (typeof cn === "undefined")
     throw new Error("unsupported platform/application combination: " + id);
-  var filename = path.join(_path, cn);
+  var filename = path.join(_path || __dirname, cn);
 
   /*  spawn the connector as a child process  */
   this.c = spawn(filename, [], {
