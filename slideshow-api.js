@@ -17,8 +17,8 @@
 var connector = require("./connector");
 
 /*  the slideshow API constructor  */
-var slideshow = function (application, _path) {
-  this.connector = new connector(application, _path);
+var slideshow = function (application, _path, appPath) {
+  this.connector = new connector(application, _path, appPath);
 };
 
 /*  the slideshow API methods  */

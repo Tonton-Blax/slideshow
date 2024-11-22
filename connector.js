@@ -17,8 +17,9 @@ var path = require("path");
 var spawn = require("child_process").spawn;
 var es = require("event-stream");
 var Promise = require("bluebird");
+var fs = require("fs");
+var { app } = require("electron");
 
-/*  the supported connectors  */
 var connectors = {
   "darwin-keynote": "connector-osx-kn5.sh",
   "darwin-keynote5": "connector-osx-kn5.sh",
@@ -31,18 +32,37 @@ var connectors = {
   "win32-powerpoint2013": "connector-win-ppt2010.bat",
 };
 
-/*  the connector API constructor  */
-var connector = function (application, _path) {
-  /*  determine connector filename  */
+var connector = function (application, _path, appPath) {
   var id = os.platform() + "-" + application;
   var cn = connectors[id];
   if (typeof cn === "undefined")
     throw new Error("unsupported platform/application combination: " + id);
 
   if (!_path) _path = __dirname;
+  else {
+    const asarPath = path.join(_path, "node_modules", "slideshow");
+
+    const connectorPath = path.join(appPath, "slideshow-connectors");
+
+    if (!fs.existsSync(connectorPath)) {
+      fs.mkdirSync(connectorPath, { recursive: true });
+    }
+
+    // Copy the connector file from ASAR to the temp directory if it doesn't exist
+    const sourceFile = path.join(asarPath, cn);
+    const targetFile = path.join(connectorPath, cn);
+
+    if (!fs.existsSync(targetFile)) {
+      fs.copyFileSync(sourceFile, targetFile);
+      if (process.platform !== "win32") {
+        fs.chmodSync(targetFile, "755");
+      }
+    }
+    _path = connectorPath;
+  }
+
   const filename = path.join(_path, cn);
 
-  /*  spawn the connector as a child process  */
   this.c = spawn(filename, [], {
     stdio: ["pipe", "pipe", process.stderr],
     env: { CONNECTOR: "FIXME" },
