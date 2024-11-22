@@ -32,41 +32,60 @@ var connectors = {
   "win32-powerpoint2013": "connector-win-ppt2010.bat",
 };
 
-var connector = function (application, _path, appPath) {
+var connector = function (application, _path) {
   var id = os.platform() + "-" + application;
   var cn = connectors[id];
   if (typeof cn === "undefined")
     throw new Error("unsupported platform/application combination: " + id);
 
-  if (!_path) _path = __dirname;
-  else {
-    const asarPath = path.join(app.getAppPath(), "slideshow");
-    const userDataPath = app.getPath("userData");
-    const connectorPath = path.join(userDataPath, "slideshow-connectors");
+  if (!_path) {
+    if (process.env.NODE_ENV === "development") {
+      _path = __dirname;
+    } else {
+      const userDataPath = app.getPath("userData");
+      const connectorPath = path.join(userDataPath, "slideshow-connectors");
 
-    if (!fs.existsSync(connectorPath))
-      fs.mkdirSync(connectorPath, { recursive: true });
-
-    fs.readdirSync(asarPath).forEach((file) => {
-      if (
-        file.endsWith(".scpt") ||
-        file.endsWith(".sh") ||
-        file.endsWith(".bat") ||
-        file === "connector-win-ppt2010.js"
-      ) {
-        const sourceFile = path.join(asarPath, file);
-        const targetFile = path.join(connectorPath, file);
-
-        if (!fs.existsSync(targetFile)) {
-          fs.copyFileSync(sourceFile, targetFile);
-          if (process.platform !== "win32" && file.endsWith(".sh")) {
-            fs.chmodSync(targetFile, "755");
-          }
-        }
+      if (!fs.existsSync(connectorPath)) {
+        fs.mkdirSync(connectorPath, { recursive: true });
       }
-    });
 
-    _path = connectorPath;
+      // Get the unpacked path
+      const resourcesPath = process.resourcesPath;
+      const unpackedPath = path.join(
+        resourcesPath,
+        "app.asar.unpacked",
+        "node_modules",
+        "slideshow"
+      );
+
+      try {
+        // Copy all relevant files from the unpacked directory
+        fs.readdirSync(unpackedPath).forEach((file) => {
+          if (
+            file.endsWith(".scpt") ||
+            file.endsWith(".sh") ||
+            file.endsWith(".bat") ||
+            file === "connector-win-ppt2010.js"
+          ) {
+            const sourceFile = path.join(unpackedPath, file);
+            const targetFile = path.join(connectorPath, file);
+
+            if (!fs.existsSync(targetFile)) {
+              fs.copyFileSync(sourceFile, targetFile);
+              // Make shell scripts executable on Unix systems
+              if (process.platform !== "win32" && file.endsWith(".sh")) {
+                fs.chmodSync(targetFile, "755");
+              }
+            }
+          }
+        });
+      } catch (err) {
+        console.error("Error copying files:", err);
+        throw err;
+      }
+
+      _path = connectorPath;
+    }
   }
 
   const filename = path.join(_path, cn);
