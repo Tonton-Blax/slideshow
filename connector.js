@@ -34,6 +34,7 @@ var connectors = {
 
 var connector = function (application) {
   var id = os.platform() + "-" + application;
+  console.log(id, id, connectors[id]);
   var cn = connectors[id];
   if (typeof cn === "undefined")
     throw new Error("unsupported platform/application combination: " + id);
@@ -41,6 +42,7 @@ var connector = function (application) {
   let _path = __dirname;
   if (app.isPackaged) {
     const userDataPath = app.getPath("userData");
+    console.log("userDataPath", userDataPath);
     const connectorPath = path.join(userDataPath, "slideshow-connectors");
 
     if (!fs.existsSync(connectorPath)) {
@@ -55,6 +57,8 @@ var connector = function (application) {
       "slideshow"
     );
 
+    console.log("unpackedPath", unpackedPath);
+
     try {
       fs.readdirSync(unpackedPath).forEach((file) => {
         if (
@@ -64,8 +68,9 @@ var connector = function (application) {
           file === "connector-win-ppt2010.js"
         ) {
           const sourceFile = path.join(unpackedPath, file);
+          console.log("sourceFile", sourceFile);
           const targetFile = path.join(connectorPath, file);
-
+          console.log("targetFile", targetFile);
           if (!fs.existsSync(targetFile)) {
             fs.copyFileSync(sourceFile, targetFile);
             if (process.platform !== "win32" && file.endsWith(".sh")) {
@@ -75,6 +80,7 @@ var connector = function (application) {
         }
       });
     } catch (err) {
+      console.log(err);
       throw err;
     }
     _path = connectorPath;
